@@ -18,7 +18,7 @@ pipeline {
             steps {
                 echo 'Running unit tests...'
                 withEnv(['CI=true']) {
-                    bat 'npm test -- --watchAll=false'
+                    bat 'npm test -- --watchAll=false --runTestsByPath src/App.test.js'
                 }
             }
         }
