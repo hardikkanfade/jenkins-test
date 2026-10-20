@@ -40,7 +40,9 @@ pipeline {
 
         stage('Docker Push') {
             when {
-                branch 'main'
+                expression {
+                    env.BRANCH_NAME == 'main' || env.GIT_BRANCH == 'origin/main' || env.GIT_BRANCH == 'main'
+                }
             }
             steps {
                 echo 'Pushing Docker image to registry...'
@@ -55,7 +57,9 @@ pipeline {
 
         stage('Deploy') {
             when {
-                branch 'main'
+                expression {
+                    env.BRANCH_NAME == 'main' || env.GIT_BRANCH == 'origin/main' || env.GIT_BRANCH == 'main'
+                }
             }
             steps {
                 echo 'Deploying application...'
