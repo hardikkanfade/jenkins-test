@@ -17,6 +17,9 @@ pipeline {
         stage('Run Tests') {
             steps {
                 echo 'Running unit tests...'
+                bat 'git rev-parse HEAD'
+                bat 'git ls-files src/App.test.js'
+                bat 'dir src'
                 withEnv(['CI=true']) {
                     bat 'npm test -- --watchAll=false --runTestsByPath src/App.test.js'
                 }
