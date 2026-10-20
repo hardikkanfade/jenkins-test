@@ -4,6 +4,7 @@ pipeline {
     environment {
         DOCKER_IMAGE = 'hardikkanfade/youtube-clone'
         DOCKER_TAG = "${env.BRANCH_NAME ?: (env.GIT_BRANCH ?: 'build').replace('origin/', '')}-${env.BUILD_NUMBER}"
+        PATH+DOCKER = 'C:\\Users\\Hardik kanfade\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin'
     }
 
     stages {
