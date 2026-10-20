@@ -19,7 +19,7 @@ function Feed() {
       )
     );
     document.title = `${id ? id + "- Youtube" : "Home - Youtube"}`;
-  }, [id]);
+  }, [dispatch, id]);
 
   useEffect(() => {
     document.body.style.backgroundColor = darkMode ? "#131417" : "#fff";

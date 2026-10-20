@@ -162,6 +162,8 @@ function Sidebar() {
                   </div>
                 </button>
               );
+            } else {
+              return null;
             }
           })}
         </div>

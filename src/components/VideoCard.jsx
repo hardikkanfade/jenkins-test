@@ -15,6 +15,7 @@ function VideoCard(props) {
         onClick={() => pageRoute(`/watch/${props.videoId}`)}
         className="md:w-56 lg:w-72 rounded-[12px] videoImage"
         src={props.thumbnail}
+        alt={props.title ? `${props.title} thumbnail` : "Video thumbnail"}
       />
       <div
         style={{ width: props.rightWidth }}

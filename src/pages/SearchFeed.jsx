@@ -23,7 +23,7 @@ function SearchFeed() {
           searchResults.map((e, index) => {
             return (
               <div key={index * 2} className='flex flex-col gap-y-3 sm:flex-row gap-x-4 md:gap-x-8 w-[98%] justify-center cursor-pointer sm:mx-0'>
-                <img onClick={() => pageRoute(`/watch/${e.id?.videoId}`)} className='w-[97%] sm:w-[29%] md:w-[25%] sm:rounded-[23px]' src={e.snippet?.thumbnails?.medium?.url} />
+                <img onClick={() => pageRoute(`/watch/${e.id?.videoId}`)} className='w-[97%] sm:w-[29%] md:w-[25%] sm:rounded-[23px]' src={e.snippet?.thumbnails?.medium?.url} alt={`${e.snippet?.title || "Video"} thumbnail`} />
                 <div className='w-[92%] sm:w-[60%] md:w-[70%] lg:w-[60%]'>
                   <h3 className='text-md sm:text-lg md:text-xl traking-wide font-normal text-[#0f0f0f] leading-[19px] sm:leading-[22px] md:leading-[24px]'>
                     {e.snippet?.title}
