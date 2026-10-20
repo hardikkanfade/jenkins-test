@@ -4,7 +4,7 @@ pipeline {
     environment {
         DOCKER_IMAGE = 'hardikkanfade/youtube-clone'
         DOCKER_TAG = "${env.BRANCH_NAME ?: (env.GIT_BRANCH ?: 'build').replace('origin/', '')}-${env.BUILD_NUMBER}"
-        PATH+DOCKER = 'C:\\Users\\Hardik kanfade\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin'
+        DOCKER_CLI = 'C:\\Users\\Hardik kanfade\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin\\docker.exe'
     }
 
     stages {
@@ -12,8 +12,8 @@ pipeline {
             steps {
                 echo 'Checking Docker access from the Jenkins agent...'
                 bat 'whoami'
-                bat 'where docker'
-                bat 'docker version'
+                bat 'if exist "%DOCKER_CLI%" (echo Docker CLI found) else (echo Docker CLI not found at configured path & exit /b 1)'
+                bat '"%DOCKER_CLI%" version'
             }
         }
 
@@ -34,7 +34,7 @@ pipeline {
         stage('Docker Build') {
             steps {
                 echo 'Building Docker image...'
-                bat 'docker build -t %DOCKER_IMAGE%:%DOCKER_TAG% .'
+                bat '"%DOCKER_CLI%" build -t %DOCKER_IMAGE%:%DOCKER_TAG% .'
             }
         }
 
@@ -45,10 +45,10 @@ pipeline {
             steps {
                 echo 'Pushing Docker image to registry...'
                 withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                    bat 'echo %DOCKER_PASS%| docker login -u "%DOCKER_USER%" --password-stdin'
-                    bat 'docker push %DOCKER_IMAGE%:%DOCKER_TAG%'
-                    bat 'docker tag %DOCKER_IMAGE%:%DOCKER_TAG% %DOCKER_IMAGE%:latest'
-                    bat 'docker push %DOCKER_IMAGE%:latest'
+                    bat 'echo %DOCKER_PASS%| "%DOCKER_CLI%" login -u "%DOCKER_USER%" --password-stdin'
+                    bat '"%DOCKER_CLI%" push %DOCKER_IMAGE%:%DOCKER_TAG%'
+                    bat '"%DOCKER_CLI%" tag %DOCKER_IMAGE%:%DOCKER_TAG% %DOCKER_IMAGE%:latest'
+                    bat '"%DOCKER_CLI%" push %DOCKER_IMAGE%:latest'
                 }
             }
         }
@@ -59,9 +59,9 @@ pipeline {
             }
             steps {
                 echo 'Deploying application...'
-                bat 'docker stop youtube-clone 2>NUL || exit /b 0'
-                bat 'docker rm youtube-clone 2>NUL || exit /b 0'
-                bat 'docker run -d --name youtube-clone -p 3000:3000 %DOCKER_IMAGE%:latest'
+                bat '"%DOCKER_CLI%" stop youtube-clone 2>NUL || exit /b 0'
+                bat '"%DOCKER_CLI%" rm youtube-clone 2>NUL || exit /b 0'
+                bat '"%DOCKER_CLI%" run -d --name youtube-clone -p 3000:3000 %DOCKER_IMAGE%:latest'
             }
         }
     }
