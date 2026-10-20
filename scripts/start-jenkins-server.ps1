@@ -10,6 +10,7 @@ $serverScript = Join-Path $workspace "node_modules\serve\build\main.js"
 $pidFile = Join-Path $workspace ".youtube-clone-server.pid"
 $stdoutLog = Join-Path $workspace "youtube-clone-server.log"
 $stderrLog = Join-Path $workspace "youtube-clone-server-error.log"
+$firewallRuleName = "YoutubeClone-Jenkins-3000"
 
 if (-not (Test-Path (Join-Path $buildDirectory "index.html"))) {
     throw "Production build not found at '$buildDirectory'."
@@ -19,6 +20,20 @@ if (-not (Test-Path $serverScript)) {
 }
 
 $node = (Get-Command node.exe -ErrorAction Stop).Source
+$firewallRule = Get-NetFirewallRule -Name $firewallRuleName -ErrorAction SilentlyContinue
+if ($firewallRule) {
+    Set-NetFirewallRule -Name $firewallRuleName -Profile Private -Enabled True -Direction Inbound -Action Allow
+}
+else {
+    New-NetFirewallRule -Name $firewallRuleName -DisplayName "YouTube Clone Jenkins app (TCP 3000)" `
+        -Direction Inbound -Action Allow -Protocol TCP -LocalPort 3000 -Profile Private | Out-Null
+}
+
+foreach ($profile in (Get-NetConnectionProfile -ErrorAction SilentlyContinue)) {
+    if ($profile.NetworkCategory -eq "Public") {
+        Write-Warning "Network '$($profile.Name)' is Public. The firewall rule only allows Private networks; change this connection to Private only if you trust it."
+    }
+}
 
 function Test-PortInUse {
     $client = New-Object System.Net.Sockets.TcpClient
@@ -62,7 +77,7 @@ if (Test-PortInUse) {
 }
 
 Remove-Item $stdoutLog, $stderrLog -Force -ErrorAction SilentlyContinue
-$arguments = "`"$serverScript`" --single --no-port-switching --listen tcp://127.0.0.1:3000 `"$buildDirectory`""
+$arguments = "`"$serverScript`" --single --no-port-switching --listen tcp://0.0.0.0:3000 `"$buildDirectory`""
 $server = Start-Process -FilePath $node -ArgumentList $arguments -WorkingDirectory $workspace `
     -WindowStyle Hidden -PassThru -RedirectStandardOutput $stdoutLog -RedirectStandardError $stderrLog
 Set-Content -Path $pidFile -Value $server.Id -Encoding ASCII
@@ -92,4 +107,9 @@ if (-not $ready) {
     throw "App server did not become ready at http://localhost:3000. $details"
 }
 
-Write-Output "App is running at http://localhost:3000 (PID $($server.Id))."
+Write-Output "App is running on port 3000 (PID $($server.Id))."
+foreach ($address in (Get-NetIPAddress -AddressFamily IPv4 -InterfaceOperationalStatus Up -ErrorAction SilentlyContinue |
+        Where-Object { $_.IPAddress -ne "127.0.0.1" -and $_.IPAddress -notlike "169.254.*" } |
+        Select-Object -ExpandProperty IPAddress -Unique)) {
+    Write-Output "App URL: http://${address}:3000"
+}
