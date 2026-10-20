@@ -3,10 +3,19 @@ pipeline {
 
     environment {
         DOCKER_IMAGE = 'hardikkanfade/youtube-clone'
-        DOCKER_TAG = "${env.BRANCH_NAME}-${env.BUILD_NUMBER}"
+        DOCKER_TAG = "${env.BRANCH_NAME ?: (env.GIT_BRANCH ?: 'build').replace('origin/', '')}-${env.BUILD_NUMBER}"
     }
 
     stages {
+        stage('Verify Docker') {
+            steps {
+                echo 'Checking Docker access from the Jenkins agent...'
+                bat 'whoami'
+                bat 'where docker'
+                bat 'docker version'
+            }
+        }
+
         stage('Install Dependencies') {
             steps {
                 echo 'Installing Node.js dependencies...'
