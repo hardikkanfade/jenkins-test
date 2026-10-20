@@ -19,11 +19,17 @@ pipeline {
                 archiveArtifacts artifacts: 'build/**', fingerprint: true
             }
         }
+
+        stage('Start Application') {
+            steps {
+                bat 'powershell -NoProfile -ExecutionPolicy Bypass -File scripts\\start-jenkins-server.ps1'
+            }
+        }
     }
 
     post {
         success {
-            echo 'React production build completed successfully.'
+            echo 'React app is running at http://localhost:3000 on the Jenkins machine.'
         }
         failure {
             echo 'Pipeline failed. Check the stage logs for details.'
