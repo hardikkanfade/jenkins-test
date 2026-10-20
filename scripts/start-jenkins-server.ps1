@@ -108,8 +108,11 @@ if (-not $ready) {
 }
 
 Write-Output "App is running on port 3000 (PID $($server.Id))."
-foreach ($address in (Get-NetIPAddress -AddressFamily IPv4 -InterfaceOperationalStatus Up -ErrorAction SilentlyContinue |
-        Where-Object { $_.IPAddress -ne "127.0.0.1" -and $_.IPAddress -notlike "169.254.*" } |
+$upInterfaceIndexes = @(Get-NetAdapter -ErrorAction SilentlyContinue |
+    Where-Object { $_.Status -eq "Up" } |
+    Select-Object -ExpandProperty ifIndex)
+foreach ($address in (Get-NetIPAddress -AddressFamily IPv4 -ErrorAction SilentlyContinue |
+        Where-Object { $upInterfaceIndexes -contains $_.InterfaceIndex -and $_.IPAddress -ne "127.0.0.1" -and $_.IPAddress -notlike "169.254.*" } |
         Select-Object -ExpandProperty IPAddress -Unique)) {
     Write-Output "App URL: http://${address}:3000"
 }
